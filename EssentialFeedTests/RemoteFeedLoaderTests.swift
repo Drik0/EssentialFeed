@@ -25,6 +25,16 @@ class RemoteFeedLoaderTests: XCTestCase {
         XCTAssertEqual(client.requestedURLs, [url])
     }
     
+    func test_loadTwice_requestsDataFromURLTwice() {
+        let url = URL(string: "https://medium.com/essential-developer-ios")!
+        let (sut, client)  = makeSUT(url: url)
+        
+        sut.load { _ in }
+        sut.load { _ in }
+        
+        XCTAssertEqual(client.requestedURLs, [url, url])
+    }
+    
     func test_load_deliverErrorOnClientError() {
         let (sut, client) = makeSUT()
         
@@ -64,14 +74,43 @@ class RemoteFeedLoaderTests: XCTestCase {
         }
     }
     
-    func test_loadTwice_requestsDataFromURLTwice() {
-        let url = URL(string: "https://www.youtube.com/c/EssentialDeveloper")!
-        let (sut, client)  = makeSUT(url: url)
+    func test_load_deliversItemsOn200HTTPResponseWithJSONItems() {
+        let (sut, client) = makeSUT()
         
-        sut.load { _ in }
-        sut.load { _ in }
+        let item1 = FeedItem(
+            id: UUID(),
+            description: nil,
+            location: nil,
+            imageURL: URL(string: "https://twitter.com/essentialdevcom")!
+        )
         
-        XCTAssertEqual(client.requestedURLs, [url, url])
+        let item1JSON = [
+            "id": item1.id.uuidString,
+            "image": item1.imageURL.absoluteString
+        ]
+        
+        let item2 = FeedItem(
+            id: UUID(),
+            description: "a description",
+            location: "a location",
+            imageURL: URL(string: "https://www.linkedin.com/company/essentialdeveloper/")!
+        )
+        
+        let item2JSON = [
+            "id": item2.id.uuidString,
+            "description": item2.description,
+            "location": item2.location,
+            "image": item2.imageURL.absoluteString
+        ]
+        
+        let itemsJSON = [
+            "items": [item1JSON, item2JSON]
+        ]
+        
+        expect(sut, toCompleteWith: .success([item1, item2])) {
+            let json = try! JSONSerialization.data(withJSONObject: itemsJSON)
+            client.complete(withStatusCode: 200, data: json)
+        }
     }
     
     // MARK: - Helpers
