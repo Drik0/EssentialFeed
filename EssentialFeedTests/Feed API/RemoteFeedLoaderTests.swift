@@ -41,7 +41,7 @@ class RemoteFeedLoaderTests: XCTestCase {
         expect(sut, toCompleteWith: .failure(.connectivity)) {
             let clientError = NSError(domain: "Test", code: 0)
             client.complete(with: clientError)
-        }
+        } 
     }
     
     func test_load_deliverErrorOnNon200HTTPResponse() {
@@ -104,7 +104,7 @@ class RemoteFeedLoaderTests: XCTestCase {
         var sut: RemoteFeedLoader? = RemoteFeedLoader(url: url, client: client)
         
         var capturedResults: [RemoteFeedLoader.Result] = []
-        sut?.load { capturedResults.append($0) } 
+        sut?.load { capturedResults.append($0) }
         
         sut = nil
         client.complete(withStatusCode: 200, data: makeItemsJSON([]))
