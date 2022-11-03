@@ -1,2 +1,0 @@
-# EssentialFeed
-Essential Developer course
